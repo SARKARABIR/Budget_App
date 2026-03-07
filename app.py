@@ -44,6 +44,24 @@ def home():
             total_expense += amount
         
     balance = total_income + total_expense
+    
+    category_data = {}
+
+    for t in transactions:
+
+        amount = t[1]
+        type = t[2]
+        category = t[3]
+
+        if type == "Expense":
+
+            if category in category_data:
+                category_data[category] += amount
+            else:
+                category_data[category] = amount
+
+
+
     conn.close()
 
     return render_template(
@@ -51,7 +69,8 @@ def home():
         transactions=transactions,
         total_income = total_income,
         total_expense = total_expense,
-        balance = balance
+        balance = balance,
+        category_data=category_data
         )
 # ---------------------------------  INCOME, EXPENSE, BALANCE LOGIC  ---------------------------------# 
 
@@ -83,6 +102,56 @@ def add_transaction():
     return render_template("add_transaction.html")
 
 # --------------------------------- INPUT DATA IN TABLE  ---------------------------------# 
+# --------------------------------- DELETE DATA IN TABLE  ---------------------------------# 
+
+@app.route("/delete/<int:id>")
+def delete_transaction(id):
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM transactions WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+# --------------------------------- DELETE DATA IN TABLE  ---------------------------------# 
+# --------------------------------- EDIT DATA IN TABLE  ---------------------------------# 
+
+@app.route("/edit/<int:id>", methods=["GET","POST"])
+def edit_transaction(id):
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+
+        amount = request.form["amount"]
+        type = request.form["type"]
+        category = request.form["category"]
+        date = request.form["date"]
+        description = request.form["description"]
+
+        cursor.execute("""
+        UPDATE transactions
+        SET amount=?, type=?, category=?, date=?,description=?
+        WHERE id=?
+        """,(amount,type,category,date,description,id))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/")
+    
+    cursor.execute("SELECT * FROM transactions WHERE id=?",(id,))
+    transaction = cursor.fetchone()
+
+    conn.close()
+
+    return render_template("edit_transaction.html",transaction = transaction)
+
+
 
 
 if __name__ == "__main__":

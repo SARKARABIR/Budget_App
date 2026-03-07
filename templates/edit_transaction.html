@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Transaction</title>
+</head>
+
+<body>
+
+<h2>Edit Transaction</h2>
+
+<form method="POST">
+
+Amount<br>
+<input type="number" name="amount" value="{{transaction[1]}}"><br><br>
+
+Type<br>
+<select name="type">
+<option {% if transaction[2]=='Income' %}selected{% endif %}>Income</option>
+<option {% if transaction[2]=='Expense' %}selected{% endif %}>Expense</option>
+</select><br><br>
+
+Category<br>
+<input type="text" name="category" value="{{transaction[3]}}"><br><br>
+
+Date<br>
+<input type="date" name="date" value="{{transaction[4]}}"><br><br>
+
+Description<br>
+<input type="text" name="description" value="{{transaction[5]}}"><br><br>
+
+<button type="submit">Update</button>
+
+</form>
+
+</body>
+</html>
