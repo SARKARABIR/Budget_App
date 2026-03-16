@@ -14,10 +14,10 @@ def init_db():
     CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         amount REAL,
-        type TEXT,
-        category TEXT,
         date TEXT,
-        description TEXT
+        category TEXT,
+        subcategory TEXT,
+        details TEXT
     )
     """)
 

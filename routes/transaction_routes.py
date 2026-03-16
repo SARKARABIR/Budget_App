@@ -90,7 +90,7 @@ def add_transaction():
     return render_template("add_transaction.html")
 
 
-@transaction_bp.route("/delete/[int:id](int:id)")
+@transaction_bp.route("/delete/<int:id>")
 def delete_transaction(id):
 
 
