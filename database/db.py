@@ -38,11 +38,18 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS budget( 
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        monthly_limit REAL
+    )
+    """)
+
     conn.commit()
     conn.close()
 
 def seed_categories():
-    conn = sqlite3.coonect("database.db")
+    conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
     categories = ["Food","Travel","Family","Rent","Utlilites","Entertainment"]
@@ -68,7 +75,11 @@ def seed_subcategories():
 
     for category, subs in mapping.items():
         cursor.execute("SELECT id FROM categories WHERE name = ?",(category,))
-        category_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        if result is None:
+            continue
+
+        category_id = result[0]
 
         for s in subs:
             cursor.execute(

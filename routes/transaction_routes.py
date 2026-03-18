@@ -14,8 +14,14 @@ def home():
 
     if month:
         cursor.execute("""
-        SELECT * FROM transactions
-        WHERE strftime('%Y-%m', date) = ?
+        SELECT t.id, t.amount, t.date,
+        c.name as category,
+        s.name as subcategory,
+        t.details
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        LEFT JOIN subcategories s ON t.subcategory_id = s.id
+        WHERE strftime('%Y-%m', t.date) = ?
         """,(month,))
     else:
         cursor.execute("SELECT * FROM transactions")
@@ -65,22 +71,27 @@ def home():
 @transaction_bp.route("/add", methods=["GET","POST"])
 def add_transaction():
 
+    conn = get_connection()
+    cursor = conn.cursor()
 
     if request.method == "POST":
 
         amount = request.form["amount"]
-        type = request.form["type"]
-        category = request.form["category"]
+        # type = request.form["type"]
+        # category = request.form["category"]
         date = request.form["date"]
-        description = request.form["description"]
+        # description = request.form["description"]
+        category_id = request.form["category"]
+        subcategory_id = request.form.get("subcategory")
+        details = request.form.get("details")
 
-        conn = get_connection()
-        cursor = conn.cursor()
+        if subcategory_id == "":
+            subcategory_id = None
 
         cursor.execute("""
-        INSERT INTO transactions (amount,type,category,date,description)
+        INSERT INTO transactions (amount,date,category_id,subcategory_id,details)
         VALUES (?,?,?,?,?)
-        """,(amount,type,category,date,description))
+        """,(amount,date,category_id,subcategory_id,details))
 
         conn.commit()
         conn.close()
@@ -160,4 +171,19 @@ def set_budget():
     conn.close()
 
     return render_template("set_budget.html")
+
+@transaction_bp.route("/get_subcategories/int:category_id")
+def get_subcategories(category_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id,name FROM subcategories WHERE category_id=?",
+        (category_id,)
+    )
+
+    subcategories = cursor.fetchall()
+    conn.close()
+
+    return {"subcategories": subcategories}
 
