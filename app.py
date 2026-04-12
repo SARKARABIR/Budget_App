@@ -165,7 +165,6 @@
 from flask import Flask
 from routes.transaction_routes import transaction_bp
 from database.db import init_db, seed_categories, seed_subcategories
-
 app = Flask(__name__)
 
 init_db()

@@ -2,10 +2,10 @@ import sqlite3
 
 def get_connection():
     conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row  # Allows column access by name
     return conn
 
 def init_db():
-
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
@@ -29,17 +29,18 @@ def init_db():
     CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         amount REAL,
+        type TEXT,
         date TEXT,
         category_id INTEGER,
         subcategory_id INTEGER,
         details TEXT,
-        FOREIGN KEY(category_id) REFERENCES categories(id)
+        FOREIGN KEY(category_id) REFERENCES categories(id),
         FOREIGN KEY(subcategory_id) REFERENCES subcategories(id)
     )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS budget( 
+    CREATE TABLE IF NOT EXISTS budget (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         monthly_limit REAL
     )
@@ -52,29 +53,30 @@ def seed_categories():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
-    categories = ["Food","Travel","Family","Rent","Utlilites","Entertainment"]
+    # Fixed typo: "Utlilites" -> "Utilities"
+    categories = ["Food", "Travel", "Family", "Rent", "Utilities", "Entertainment"]
 
     for c in categories:
-        cursor.execute("INSERT OR IGNORE INTO categories(name) VALUES(?)",(c,))
+        cursor.execute("INSERT OR IGNORE INTO categories(name) VALUES(?)", (c,))
 
     conn.commit()
     conn.close()
 
 def seed_subcategories():
-    
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
     mapping = {
-        "Food": ["Breakfast","Lunch","Dinner","Snacks","Munching"],
-        "Travel": ["Flight","Train","Rickshaw","Bus","Metro","Bike"], 
-        "Rent": ["PG","Netflix","YouTube"], 
-        "Utilities": ["Electricity","Water","Internet","Mobile"], 
-        "Entertainment": ["Shows","Sports","Cinema","Events"]
+        "Food": ["Breakfast", "Lunch", "Dinner", "Snacks", "Munching"],
+        "Travel": ["Flight", "Train", "Rickshaw", "Bus", "Metro", "Bike"],
+        "Family": ["Groceries", "Medical", "Education", "Gifts"],   # Added Family subcategories
+        "Rent": ["PG", "Netflix", "YouTube"],
+        "Utilities": ["Electricity", "Water", "Internet", "Mobile"],  # Fixed typo
+        "Entertainment": ["Shows", "Sports", "Cinema", "Events"]
     }
 
     for category, subs in mapping.items():
-        cursor.execute("SELECT id FROM categories WHERE name = ?",(category,))
+        cursor.execute("SELECT id FROM categories WHERE name = ?", (category,))
         result = cursor.fetchone()
         if result is None:
             continue
@@ -83,9 +85,9 @@ def seed_subcategories():
 
         for s in subs:
             cursor.execute(
-                "INSERT OR IGNORE INTO subcategories(category_id,name) VALUES(?,?)",
-                (category_id,s)
+                "INSERT OR IGNORE INTO subcategories(category_id, name) VALUES(?, ?)",
+                (category_id, s)
             )
+
     conn.commit()
     conn.close()
-
